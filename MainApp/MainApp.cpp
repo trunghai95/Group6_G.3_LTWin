@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "MainApp.h"
 
-#define MAX_LOADSTRING 100
+#define MAX_LOADSTRING 200
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
