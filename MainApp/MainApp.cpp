@@ -1,8 +1,9 @@
-// MainApp.cpp : Defines the entry point for the application.
+﻿// MainApp.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
 #include "MainApp.h"
+#include <windowsx.h>
 
 #define MAX_LOADSTRING 200
 
@@ -10,12 +11,12 @@
 HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
+HWND hMainDlg;
 
 // Forward declarations of functions included in this code module:
-ATOM				MyRegisterClass(HINSTANCE hInstance);
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -32,7 +33,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_MAINAPP, szWindowClass, MAX_LOADSTRING);
-	MyRegisterClass(hInstance);
 
 	// Perform application initialization:
 	if (!InitInstance (hInstance, nCmdShow))
@@ -56,33 +56,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 }
 
 
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-ATOM MyRegisterClass(HINSTANCE hInstance)
-{
-	WNDCLASSEX wcex;
-
-	wcex.cbSize = sizeof(WNDCLASSEX);
-
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= hInstance;
-	wcex.hIcon			= LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
-	wcex.hCursor		= LoadCursor(NULL, IDC_ARROW);
-	wcex.hbrBackground	= (HBRUSH)(COLOR_WINDOW+1);
-	wcex.lpszMenuName	= MAKEINTRESOURCE(IDC_MAINAPP);
-	wcex.lpszClassName	= szWindowClass;
-	wcex.hIconSm		= LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-	return RegisterClassEx(&wcex);
-}
-
 //
 //   FUNCTION: InitInstance(HINSTANCE, int)
 //
@@ -95,20 +68,16 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 //
 BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
-   HWND hWnd;
-
    hInst = hInstance; // Store instance handle in our global variable
 
-   hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInstance, NULL);
+   hMainDlg = CreateDialog(hInstance, MAKEINTRESOURCE(IDD_MAINDLG), NULL, DlgProc);
 
-   if (!hWnd)
+   if (!hMainDlg)
    {
       return FALSE;
    }
 
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+   ShowWindow(hMainDlg, SW_SHOW);
 
    return TRUE;
 }
@@ -138,7 +107,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switch (wmId)
 		{
 		case IDM_ABOUT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+			//DialogBox(hInst, MAKEINTRESOURCE(IDD_MAINDLG), hWnd, About);
 			break;
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
@@ -162,7 +131,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 // Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
@@ -171,12 +140,23 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		switch (LOWORD(wParam))
 		{
-			EndDialog(hDlg, LOWORD(wParam));
+		case IDOK:
+			DestroyWindow(hDlg);
 			return (INT_PTR)TRUE;
 		}
 		break;
+
+	case WM_KEYDOWN:
+		MessageBox(NULL, L"AAA", L"AAA", MB_OK); // không hiện
+		if (GetFocus() == GetDlgItem(hDlg, IDC_EDITRIGHT))
+			Edit_SetText(GetDlgItem(hDlg, IDC_EDITRIGHT), L"Đã nhấn gì đấy");
+		return (INT_PTR)TRUE;
+
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return (INT_PTR)TRUE;
 	}
 	return (INT_PTR)FALSE;
 }
