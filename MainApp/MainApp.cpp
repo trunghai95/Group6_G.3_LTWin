@@ -12,11 +12,13 @@ HINSTANCE hInst;								// current instance
 TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HWND hMainDlg;
+WNDPROC OldEditProc;
 
 // Forward declarations of functions included in this code module:
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
+LRESULT CALLBACK	NewEditProc(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -137,6 +139,12 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_INITDIALOG:
+		OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT),
+			GWLP_WNDPROC);
+		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLEFT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITUP), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITDOWN), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -159,4 +167,22 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		return (INT_PTR)TRUE;
 	}
 	return (INT_PTR)FALSE;
+}
+
+LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	switch (message)
+	{
+	case WM_KEYDOWN:
+		TCHAR buf[100];
+		_itow(wParam, buf, 16);
+		Edit_SetText(hWnd, buf);
+		return 0;
+
+	default:
+		if (OldEditProc != NULL)
+			return CallWindowProc(OldEditProc, hWnd, message, wParam, lParam);
+		else
+			return DefWindowProc(hWnd, message, wParam, lParam);
+	}
 }
