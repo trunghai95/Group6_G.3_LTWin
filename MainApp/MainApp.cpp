@@ -4,10 +4,13 @@
 #include "stdafx.h"
 #include "MainApp.h"
 #include <windowsx.h>
+#include <shellapi.h>
 #include "SupportingFuncs.h"
 #include "../IDs.h"
 
 #define MAX_LOADSTRING 200
+#define WM_TRAYICON (WM_USER + 1)
+#define TRAY_ICON_ID 12345
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -15,8 +18,12 @@ TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HWND hMainDlg;
 WNDPROC OldEditProc;
+NOTIFYICONDATA notifyIconData;
+
 INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction control values
 INT BUTTON[5] = { 'A', 'D', 'S', 'W', 'X' };
+INT SPEED = 10;
+
 // Forward declarations of functions included in this code module:
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -28,7 +35,9 @@ void OnInitDlg(HWND);
 void SetDataToArray(INT IDEDIT, INT value);
 void InstallCtrlMouseHook(HWND hWndApp);
 void UninstallCtrlMouseHook();
-void UpdateData(INT dir[], INT but[]);
+void UpdateData(INT dir[], INT but[], INT spd);
+void Minimize(HWND);
+void Restore(HWND);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -57,7 +66,7 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	// Main message loop:
 	while (GetMessage(&msg, NULL, 0, 0))
 	{
-		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+		if (hMainDlg == NULL || !IsDialogMessage(hMainDlg, &msg))
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
@@ -90,6 +99,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    ShowWindow(hMainDlg, SW_SHOW);
+
+   memset(&notifyIconData, 0, sizeof(NOTIFYICONDATA));
+   notifyIconData.cbSize = sizeof(NOTIFYICONDATA);
+   notifyIconData.hWnd = hMainDlg;
+   notifyIconData.uID = TRAY_ICON_ID;
+   notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE;
+   notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
+   notifyIconData.uCallbackMessage = WM_TRAYICON;
+
+   Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
 
    return TRUE;
 }
@@ -145,7 +164,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 // Message handler for Dialog
 INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	UNREFERENCED_PARAMETER(lParam);
+	if (message == RegisterWindowMessage(L"TaskbarCreated") && !IsWindowVisible(hDlg))
+	{
+		Minimize(hDlg);
+		return (INT_PTR)TRUE;
+	}
+
 	switch (message)
 	{
 	case WM_INITDIALOG:
@@ -160,11 +184,19 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hDlg);
 			return (INT_PTR)TRUE;
 		case IDC_BUTTONAPPLY:
-			UpdateData(DIRECTION, BUTTON);
+			UpdateData(DIRECTION, BUTTON, SPEED);
 			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
 			return (INT_PTR)TRUE;
 		}
 		break;
+
+	case WM_CLOSE:
+		Minimize(hDlg);
+		return (INT_PTR)TRUE;
+	case WM_TRAYICON:
+		if (wParam == TRAY_ICON_ID && lParam == WM_LBUTTONUP)
+			Restore(hDlg);
+		return (INT_PTR)TRUE;
 
 	case WM_DESTROY:
 		UninstallCtrlMouseHook();
@@ -197,42 +229,56 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	}
 }
 
+void Minimize(HWND hDlg)
+{
+	Shell_NotifyIcon(NIM_ADD, &notifyIconData);
+	ShowWindow(hDlg, SW_HIDE);
+}
+
+void Restore(HWND hDlg)
+{
+	Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
+	ShowWindow(hDlg, SW_SHOW);
+}
+
 void SetDataToArray(INT IDEDIT, INT value)
 {
 	switch (IDEDIT)
 	{
 	case IDC_EDITLEFT:
-		DIRECTION[0] = value;
+		DIRECTION[LEFT] = value;
 		break;
 	case IDC_EDITUP:
-		DIRECTION[1] = value;
+		DIRECTION[UP] = value;
 		break;
 	case IDC_EDITRIGHT:
-		DIRECTION[2] = value;
+		DIRECTION[RIGHT] = value;
 		break;
 	case IDC_EDITDOWN:
-		DIRECTION[3] = value;
+		DIRECTION[DOWN] = value;
 		break;
 	case IDC_EDITLBUTTON:
-		BUTTON[0] = value;
+		BUTTON[LBUTTON] = value;
 		break;
 	case IDC_EDITRBUTTON:
-		BUTTON[1] = value;
+		BUTTON[RBUTTON] = value;
 		break;
 	case IDC_EDITMBUTTON:
-		BUTTON[2] = value;
+		BUTTON[MBUTTON] = value;
 		break;
 	case IDC_EDITWUP:
-		BUTTON[3] = value;
+		BUTTON[WHEELUP] = value;
 		break;
 	case IDC_EDITWDOWN:
-		BUTTON[4] = value;
+		BUTTON[WHEELDOWN] = value;
 		break;
 	}
 }
 
 void OnInitDlg(HWND hDlg)
 {
+	UpdateData(DIRECTION, BUTTON, SPEED);
+
 	OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC);
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLEFT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);

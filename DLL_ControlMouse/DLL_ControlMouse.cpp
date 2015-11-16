@@ -2,12 +2,15 @@
 //
 
 #include "stdafx.h"
+#include "../IDs.h"
 #define EXPORT  __declspec(dllexport)
 #define IMPORT __declspec(dllimport)
+
 HHOOK hHook = NULL;
 HWND hWnd = NULL;
 INT Direction[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default values
 INT Button[5] = { 'A', 'D', 'S', 'W', 'X' };
+INT speed = 10;
 extern HINSTANCE hInstLib;
 
 bool onMouse = false;
@@ -23,9 +26,11 @@ LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (nCode < 0 || GetActiveWindow() == hWnd)
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
 
-	if (wParam == activateKey)
+	KBDLLHOOKSTRUCT* str = (KBDLLHOOKSTRUCT*)lParam;
+
+	if (HIWORD(GetKeyState(VK_CONTROL)) && HIWORD(GetKeyState(VK_SHIFT)))
 	{
-		if (GetAsyncKeyState(wParam) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_SHIFT))
+		if (wParam == WM_KEYDOWN && str->vkCode == activateKey)
 		{
 			onMouse = !onMouse;
 			MessageBeep(MB_ICONWARNING);
@@ -35,15 +40,15 @@ LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
 	}
 
-	if (onMouse && IsInCustomKeys(wParam))
+	if (onMouse && IsInCustomKeys(str->vkCode))
 	{
-		if (GetAsyncKeyState(wParam))
+		if (wParam == WM_KEYDOWN)
 		{
-			MoveMouse(hWnd, wParam);
-			ClickMouse(wParam);
+			MoveMouse(hWnd, str->vkCode);
+			ClickMouse(str->vkCode);
 		}
 		else
-			ReleaseMouse(wParam);
+			ReleaseMouse(str->vkCode);
 		return 1;
 	}
 
@@ -54,7 +59,7 @@ EXPORT void InstallCtrlMouseHook(HWND hWndApp)
 {
 	hWnd = hWndApp;
 	if (hHook != NULL) return;
-	hHook = SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)KBControlMouseProc, hInstLib, 0);
+	hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KBControlMouseProc, hInstLib, 0);
 }
 
 EXPORT void UninstallCtrlMouseHook()
@@ -64,31 +69,31 @@ EXPORT void UninstallCtrlMouseHook()
 	hHook = NULL;
 }
 
-EXPORT void UpdateData(INT dir[], INT but[])
+EXPORT void UpdateData(INT dir[], INT but[], INT spd)
 {
 	for (int i = 0; i < 4; i++)
 		Direction[i] = dir[i];
 	for (int i = 0; i < 5; i++)
 		Button[i] = but[i];
+	speed = spd;
 }
 
 void MoveMouse(HWND hWnd, WPARAM wParam)
 {
-	int repeat = 10;
 	POINT pt;
 
 	GetCursorPos(&pt);
 
 	ScreenToClient(hWnd, &pt);
 
-	if (wParam == Direction[0]) // Left
-		pt.x -= repeat;
-	if (wParam == Direction[1]) // Up
-		pt.y -= repeat;
-	if (wParam == Direction[2]) // Right
-		pt.x += repeat;
-	if (wParam == Direction[3]) // Down
-		pt.y += repeat;
+	if (wParam == Direction[LEFT]) // Left
+		pt.x -= speed;
+	else if (wParam == Direction[UP]) // Up
+		pt.y -= speed;
+	else if (wParam == Direction[RIGHT]) // Right
+		pt.x += speed;
+	else if (wParam == Direction[DOWN]) // Down
+		pt.y += speed;
 
 	ClientToScreen(hWnd, &pt);
 	SetCursorPos(pt.x, pt.y);
@@ -129,25 +134,25 @@ void SendEventClick(INT Event, INT Data)
 
 void ClickMouse(WPARAM wParam)
 {
-	if (wParam == Button[0]) //Left click
+	if (wParam == Button[LBUTTON]) //Left click
 		SendEventClick(MOUSEEVENTF_LEFTDOWN, 0);
-	else if (wParam == Button[1]) //right click
+	else if (wParam == Button[RBUTTON]) //right click
 		SendEventClick(MOUSEEVENTF_RIGHTDOWN, 0);
-	else if (wParam == Button[2]) // middle click
+	else if (wParam == Button[MBUTTON]) // middle click
 		SendEventClick(MOUSEEVENTF_MIDDLEDOWN, 0);
-	else if (wParam == Button[3]) // roll up
+	else if (wParam == Button[WHEELUP]) // roll up
 		SendEventClick(MOUSEEVENTF_WHEEL, WHEEL_DELTA);
-	else if (wParam == Button[4]) // roll down
+	else if (wParam == Button[WHEELDOWN]) // roll down
 		SendEventClick(MOUSEEVENTF_WHEEL, -WHEEL_DELTA);
 }
 
 void ReleaseMouse(WPARAM wParam)
 {
-	if (wParam == Button[0]) //Left up
+	if (wParam == Button[LBUTTON]) //Left up
 		SendEventClick(MOUSEEVENTF_LEFTUP,0);
-	else if (wParam == Button[1]) //right up
+	else if (wParam == Button[RBUTTON]) //right up
 		SendEventClick(MOUSEEVENTF_RIGHTUP,0);
-	else if (wParam == Button[2]) // middle up
+	else if (wParam == Button[MBUTTON]) // middle up
 		SendEventClick(MOUSEEVENTF_MIDDLEUP,0);
 
 }
