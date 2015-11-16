@@ -26,8 +26,13 @@ LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 	if (wParam == activateKey)
 	{
 		if (GetAsyncKeyState(wParam) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_SHIFT))
+		{
 			onMouse = !onMouse;
-		return 1;
+			MessageBeep(MB_ICONWARNING);
+			return 1;
+		}
+
+		return CallNextHookEx(hHook, nCode, wParam, lParam);
 	}
 
 	if (onMouse && IsInCustomKeys(wParam))
@@ -41,6 +46,8 @@ LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 			ReleaseMouse(wParam);
 		return 1;
 	}
+
+	return CallNextHookEx(hHook, nCode, wParam, lParam);
 }
 
 EXPORT void InstallCtrlMouseHook(HWND hWndApp)
