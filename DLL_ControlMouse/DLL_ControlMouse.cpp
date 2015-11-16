@@ -11,22 +11,13 @@ INT Button[5] = { 'A', 'D', 'S', 'W', 'X' };
 extern HINSTANCE hInstLib;
 
 void MoveMouse(HWND hWnd, WPARAM wParam);
-void ClickMouse(WPARAM);
-void ReleaseMouse(WPARAM);
-bool IsInCustomKeys(WPARAM wParam);
 
 LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	if (nCode < 0 | !IsInCustomKeys(wParam))
+	if (nCode < 0)
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
-	if (GetAsyncKeyState(wParam))
-	{
-		MoveMouse(hWnd, wParam);
-		ClickMouse(wParam);
-	}
-	else
-		ReleaseMouse(wParam);
-	return 1;
+	MoveMouse(hWnd, wParam);
+	return CallNextHookEx(hHook, nCode, wParam, lParam);
 }
 
 EXPORT void InstallCtrlMouseHook(HWND hWndApp)
@@ -43,12 +34,10 @@ EXPORT void UninstallCtrlMouseHook()
 	hHook = NULL;
 }
 
-EXPORT void UpdateData(INT dir[], INT but[])
+EXPORT void UpdateDirection(INT dir[])
 {
 	for (int i = 0; i < 4; i++)
 		Direction[i] = dir[i];
-	for (int i = 0; i < 5; i++)
-		Button[i] = but[i];
 }
 
 void MoveMouse(HWND hWnd, WPARAM wParam)
@@ -71,73 +60,4 @@ void MoveMouse(HWND hWnd, WPARAM wParam)
 
 	ClientToScreen(hWnd, &pt);
 	SetCursorPos(pt.x, pt.y);
-}
-
-INPUT* getInputMouse()
-{
-	POINT pt;
-	GetCursorPos(&pt);
-	INPUT *mouse = new INPUT;
-	mouse->type = INPUT_MOUSE;
-	mouse->mi.dx = pt.x;
-	mouse->mi.dy = pt.y;
-	mouse->mi.mouseData = 0;
-	mouse->mi.dwFlags = MOUSEEVENTF_ABSOLUTE;
-	mouse->mi.time = 0;
-	mouse->mi.dwExtraInfo = 0;
-	return mouse;
-}
-
-void deleteInputMouse(INPUT *mouse)
-{
-	if (mouse)
-	{
-		delete mouse;
-		mouse = NULL;
-	}
-}
-
-void SendEventClick(INT Event, INT Data)
-{
-	INPUT* mouse = getInputMouse();
-	mouse->mi.dwFlags = Event;
-	mouse->mi.mouseData = Data;
-	SendInput(1, mouse, sizeof(INPUT));
-	deleteInputMouse(mouse);
-}
-
-void ClickMouse(WPARAM wParam)
-{
-	if (wParam == Button[0]) //Left click
-		SendEventClick(MOUSEEVENTF_LEFTDOWN, 0);
-	else if (wParam == Button[1]) //right click
-		SendEventClick(MOUSEEVENTF_RIGHTDOWN, 0);
-	else if (wParam == Button[2]) // middle click
-		SendEventClick(MOUSEEVENTF_MIDDLEDOWN, 0);
-	else if (wParam == Button[3]) // roll up
-		SendEventClick(MOUSEEVENTF_WHEEL, WHEEL_DELTA);
-	else if (wParam == Button[4]) // roll down
-		SendEventClick(MOUSEEVENTF_WHEEL, -WHEEL_DELTA);
-}
-
-void ReleaseMouse(WPARAM wParam)
-{
-	if (wParam == Button[0]) //Left up
-		SendEventClick(MOUSEEVENTF_LEFTUP,0);
-	else if (wParam == Button[1]) //right up
-		SendEventClick(MOUSEEVENTF_RIGHTUP,0);
-	else if (wParam == Button[2]) // middle up
-		SendEventClick(MOUSEEVENTF_MIDDLEUP,0);
-
-}
-
-bool IsInCustomKeys(WPARAM wParam)
-{
-	for (int i = 0; i < 4; i++)
-		if (wParam == Direction[i])
-			return TRUE;
-	for (int i = 0; i < 5; i++)
-		if (wParam == Button[i])
-			return TRUE;
-	return FALSE;
 }

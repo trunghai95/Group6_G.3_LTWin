@@ -1,4 +1,4 @@
 EXPORT
 InstallCtrlMouseHook @1
 UninstallCtrlMouseHook @2
-UpdateData @3
+UpdateDirection @3

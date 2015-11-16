@@ -25,10 +25,11 @@ LRESULT CALLBACK	NewEditProc(HWND, UINT, WPARAM, LPARAM);
 
 void OnInitDlg(HWND);
 
-void SetDataToArray(INT IDEDIT, INT value);
+void SetDirection(INT IDEDIT, INT value);
 void InstallCtrlMouseHook(HWND hWndApp);
 void UninstallCtrlMouseHook();
-void UpdateData(INT dir[], INT but[]);
+void UpdateDirection(INT dir[]);
+
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -160,7 +161,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			DestroyWindow(hDlg);
 			return (INT_PTR)TRUE;
 		case IDC_BUTTONAPPLY:
-			UpdateData(DIRECTION, BUTTON);
+			UpdateDirection(DIRECTION);
 			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
 			return (INT_PTR)TRUE;
 		}
@@ -182,7 +183,7 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		TCHAR buf[100];
 		GetKeyName(wParam, buf);
 		Edit_SetText(hWnd, buf);
-		SetDataToArray(GetDlgCtrlID(hWnd), wParam);
+		SetDirection(GetDlgCtrlID(hWnd), wParam);
 		EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), TRUE);
 		return 0;
 
@@ -194,7 +195,7 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	}
 }
 
-void SetDataToArray(INT IDEDIT, INT value)
+void SetDirection(INT IDEDIT, INT value)
 {
 	switch (IDEDIT)
 	{
@@ -209,21 +210,6 @@ void SetDataToArray(INT IDEDIT, INT value)
 		break;
 	case IDC_EDITDOWN:
 		DIRECTION[3] = value;
-		break;
-	case IDC_EDITLBUTTON:
-		BUTTON[0] = value;
-		break;
-	case IDC_EDITRBUTTON:
-		BUTTON[1] = value;
-		break;
-	case IDC_EDITMBUTTON:
-		BUTTON[2] = value;
-		break;
-	case IDC_EDITWUP:
-		BUTTON[3] = value;
-		break;
-	case IDC_EDITWDOWN:
-		BUTTON[4] = value;
 		break;
 	}
 }
