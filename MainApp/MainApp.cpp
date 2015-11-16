@@ -4,6 +4,8 @@
 #include "stdafx.h"
 #include "MainApp.h"
 #include <windowsx.h>
+#include "SupportingFuncs.h"
+#include "../IDs.h"
 
 #define MAX_LOADSTRING 200
 
@@ -14,15 +16,21 @@ TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HWND hMainDlg;
 WNDPROC OldEditProc;
 INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction control values
+INT BUTTON[5] = { 'A', 'D', 'S', 'W', 'X' };
 // Forward declarations of functions included in this code module:
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	NewEditProc(HWND, UINT, WPARAM, LPARAM);
+
+void OnInitDlg(HWND);
+
 void SetDirection(INT IDEDIT, INT value);
 void InstallCtrlMouseHook(HWND hWndApp);
 void UninstallCtrlMouseHook();
 void UpdateDirection(INT dir[]);
+
+
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPTSTR    lpCmdLine,
@@ -142,12 +150,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_INITDIALOG:
-		OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT),
-			GWLP_WNDPROC);
-		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
-		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLEFT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
-		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITUP), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
-		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITDOWN), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+		OnInitDlg(hDlg);
 		InstallCtrlMouseHook(hDlg);
 		return (INT_PTR)TRUE;
 
@@ -157,14 +160,12 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDOK:
 			DestroyWindow(hDlg);
 			return (INT_PTR)TRUE;
+		case IDC_BUTTONAPPLY:
+			UpdateDirection(DIRECTION);
+			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
+			return (INT_PTR)TRUE;
 		}
 		break;
-
-	case WM_KEYDOWN:
-		MessageBox(NULL, L"AAA", L"AAA", MB_OK); // không hiện
-		if (GetFocus() == GetDlgItem(hDlg, IDC_EDITRIGHT))
-			Edit_SetText(GetDlgItem(hDlg, IDC_EDITRIGHT), L"Đã nhấn gì đấy");
-		return (INT_PTR)TRUE;
 
 	case WM_DESTROY:
 		UninstallCtrlMouseHook();
@@ -180,10 +181,10 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	{
 	case WM_KEYDOWN:
 		TCHAR buf[100];
-		_itow(wParam, buf, 16);
+		GetKeyName(wParam, buf);
 		Edit_SetText(hWnd, buf);
 		SetDirection(GetDlgCtrlID(hWnd), wParam);
-		UpdateDirection(DIRECTION);
+		EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), TRUE);
 		return 0;
 
 	default:
@@ -211,4 +212,19 @@ void SetDirection(INT IDEDIT, INT value)
 		DIRECTION[3] = value;
 		break;
 	}
+}
+
+void OnInitDlg(HWND hDlg)
+{
+	OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLEFT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITUP), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITDOWN), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+
+	TCHAR buffer[100];
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITDOWN), GetKeyName(DIRECTION[DOWN], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITUP), GetKeyName(DIRECTION[UP], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITLEFT), GetKeyName(DIRECTION[LEFT], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITRIGHT), GetKeyName(DIRECTION[RIGHT], buffer));
 }

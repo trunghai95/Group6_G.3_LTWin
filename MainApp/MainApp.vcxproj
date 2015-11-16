@@ -77,6 +77,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\IDs.h" />
     <ClInclude Include="MainApp.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
@@ -98,7 +99,7 @@
     <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="DLL_ControlMouse.lib" />
+    <Library Include="..\Debug\DLL_ControlMouse.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -7,6 +7,7 @@
 HHOOK hHook = NULL;
 HWND hWnd = NULL;
 INT Direction[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default values
+INT Button[5] = { 'A', 'D', 'S', 'W', 'X' };
 extern HINSTANCE hInstLib;
 
 void MoveMouse(HWND hWnd, WPARAM wParam);
