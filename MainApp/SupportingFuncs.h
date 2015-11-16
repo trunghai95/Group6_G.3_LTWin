@@ -24,6 +24,12 @@ TCHAR* GetKeyName(int vkCode, TCHAR* buffer)
 		return buffer;
 	}
 
+	if (vkCode <= VK_F12 && vkCode >= VK_F1)
+	{
+		wsprintf(buffer, L"F%d", vkCode - VK_F1 + 1);
+		return buffer;
+	}
+
 	switch (vkCode)
 	{
 	case VK_CONTROL:
@@ -50,8 +56,80 @@ TCHAR* GetKeyName(int vkCode, TCHAR* buffer)
 	case VK_RIGHT:
 		wsprintf(buffer, L"Right");
 		break;
-	default:
-		wsprintf(buffer, L"Chưa cài tới :v");
+	case VK_BACK:
+		wsprintf(buffer, L"Backspace");
+		break;
+	case VK_ESCAPE:
+		wsprintf(buffer, L"Escape");
+		break;
+	case VK_SPACE:
+		wsprintf(buffer, L"Space bar");
+		break;
+	case VK_PRIOR:
+		wsprintf(buffer, L"Page up");
+		break;
+	case VK_NEXT:
+		wsprintf(buffer, L"Page down");
+		break;
+	case VK_END:
+		wsprintf(buffer, L"End");
+		break;
+	case VK_HOME:
+		wsprintf(buffer, L"Home");
+		break;
+	case VK_INSERT:
+		wsprintf(buffer, L"Insert");
+		break;
+	case VK_DELETE:
+		wsprintf(buffer, L"Delete");
+		break;
+	case VK_MULTIPLY:
+		wsprintf(buffer, L"*");
+		break;
+	case VK_ADD:
+		wsprintf(buffer, L"+");
+		break;
+	case VK_DIVIDE:
+		wsprintf(buffer, L"/");
+		break;
+	case VK_SUBTRACT:
+		wsprintf(buffer, L"-");
+		break;
+	case VK_DECIMAL:
+		wsprintf(buffer, L".");
+		break;
+	case VK_OEM_1:
+		wsprintf(buffer, L";:");
+		break;
+	case VK_OEM_PLUS:
+		wsprintf(buffer, L"=+");
+		break;
+	case VK_OEM_COMMA:
+		wsprintf(buffer, L",<");
+		break;
+	case VK_OEM_MINUS:
+		wsprintf(buffer, L"-_");
+		break;
+	case VK_OEM_PERIOD:
+		wsprintf(buffer, L".>");
+		break;
+	case VK_OEM_2:
+		wsprintf(buffer, L"/?");
+		break;
+	case VK_OEM_3:
+		wsprintf(buffer, L"`~");
+		break;
+	case VK_OEM_4:
+		wsprintf(buffer, L"[{");
+		break;
+	case VK_OEM_5:
+		wsprintf(buffer, L"\\|");
+		break;
+	case VK_OEM_6:
+		wsprintf(buffer, L"]}");
+		break;
+	case VK_OEM_7:
+		wsprintf(buffer, L"'\"");
 		break;
 	}
 

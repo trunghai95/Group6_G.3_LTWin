@@ -181,9 +181,12 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 	case WM_KEYDOWN:
 		TCHAR buf[100];
 		GetKeyName(wParam, buf);
-		Edit_SetText(hWnd, buf);
-		SetDataToArray(GetDlgCtrlID(hWnd), wParam);
-		EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), TRUE);
+		if (wcslen(buf) > 0)
+		{
+			Edit_SetText(hWnd, buf);
+			SetDataToArray(GetDlgCtrlID(hWnd), wParam);
+			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), TRUE);
+		}
 		return 0;
 
 	default:
@@ -235,10 +238,20 @@ void OnInitDlg(HWND hDlg)
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLEFT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITUP), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITDOWN), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLBUTTON), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRBUTTON), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITMBUTTON), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITWUP), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITWDOWN), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 
 	TCHAR buffer[100];
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITDOWN), GetKeyName(DIRECTION[DOWN], buffer));
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITUP), GetKeyName(DIRECTION[UP], buffer));
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITLEFT), GetKeyName(DIRECTION[LEFT], buffer));
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITRIGHT), GetKeyName(DIRECTION[RIGHT], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITLBUTTON), GetKeyName(BUTTON[LBUTTON], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITRBUTTON), GetKeyName(BUTTON[RBUTTON], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITMBUTTON), GetKeyName(BUTTON[MBUTTON], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITWUP), GetKeyName(BUTTON[WHEELUP], buffer));
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITWDOWN), GetKeyName(BUTTON[WHEELDOWN], buffer));
 }

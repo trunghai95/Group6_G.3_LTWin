@@ -10,6 +10,9 @@ INT Direction[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default values
 INT Button[5] = { 'A', 'D', 'S', 'W', 'X' };
 extern HINSTANCE hInstLib;
 
+bool onMouse = false;
+const int activateKey = 'M'; // Activated by Ctrl + Shift + activateKey
+
 void MoveMouse(HWND hWnd, WPARAM wParam);
 void ClickMouse(WPARAM);
 void ReleaseMouse(WPARAM);
@@ -17,16 +20,27 @@ bool IsInCustomKeys(WPARAM wParam);
 
 LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-	if (nCode < 0 | !IsInCustomKeys(wParam))
+	if (nCode < 0 || GetActiveWindow() == hWnd)
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
-	if (GetAsyncKeyState(wParam))
+
+	if (wParam == activateKey)
 	{
-		MoveMouse(hWnd, wParam);
-		ClickMouse(wParam);
+		if (GetAsyncKeyState(wParam) && GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_SHIFT))
+			onMouse = !onMouse;
+		return 1;
 	}
-	else
-		ReleaseMouse(wParam);
-	return 1;
+
+	if (onMouse && IsInCustomKeys(wParam))
+	{
+		if (GetAsyncKeyState(wParam))
+		{
+			MoveMouse(hWnd, wParam);
+			ClickMouse(wParam);
+		}
+		else
+			ReleaseMouse(wParam);
+		return 1;
+	}
 }
 
 EXPORT void InstallCtrlMouseHook(HWND hWndApp)
@@ -62,11 +76,11 @@ void MoveMouse(HWND hWnd, WPARAM wParam)
 
 	if (wParam == Direction[0]) // Left
 		pt.x -= repeat;
-	else if (wParam == Direction[1]) // Up
+	if (wParam == Direction[1]) // Up
 		pt.y -= repeat;
-	else if (wParam == Direction[2]) // Right
+	if (wParam == Direction[2]) // Right
 		pt.x += repeat;
-	else if (wParam == Direction[3]) // Down
+	if (wParam == Direction[3]) // Down
 		pt.y += repeat;
 
 	ClientToScreen(hWnd, &pt);

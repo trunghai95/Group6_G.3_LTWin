@@ -1,4 +1,4 @@
-EXPORT
+EXPORTS
 InstallCtrlMouseHook @1
 UninstallCtrlMouseHook @2
 UpdateData @3
