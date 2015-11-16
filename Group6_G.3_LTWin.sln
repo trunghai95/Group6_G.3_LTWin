@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MainApp", "MainApp\MainApp.vcxproj", "{33175C3B-5785-4104-886B-83473DFF98C9}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DLL_ControlMouse", "DLL_ControlMouse\DLL_ControlMouse.vcxproj", "{F2D957FD-1B8E-46E5-A0F1-DF19A93BDDF6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{33175C3B-5785-4104-886B-83473DFF98C9}.Debug|Win32.Build.0 = Debug|Win32
 		{33175C3B-5785-4104-886B-83473DFF98C9}.Release|Win32.ActiveCfg = Release|Win32
 		{33175C3B-5785-4104-886B-83473DFF98C9}.Release|Win32.Build.0 = Release|Win32
+		{F2D957FD-1B8E-46E5-A0F1-DF19A93BDDF6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F2D957FD-1B8E-46E5-A0F1-DF19A93BDDF6}.Debug|Win32.Build.0 = Debug|Win32
+		{F2D957FD-1B8E-46E5-A0F1-DF19A93BDDF6}.Release|Win32.ActiveCfg = Release|Win32
+		{F2D957FD-1B8E-46E5-A0F1-DF19A93BDDF6}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

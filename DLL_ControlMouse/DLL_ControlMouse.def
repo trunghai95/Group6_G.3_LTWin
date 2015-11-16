@@ -1,0 +1,4 @@
+EXPORT
+InstallCtrlMouseHook @1
+UninstallCtrlMouseHook @2
+UpdateDirection @3

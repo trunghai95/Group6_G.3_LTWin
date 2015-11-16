@@ -13,13 +13,16 @@ TCHAR szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR szWindowClass[MAX_LOADSTRING];			// the main window class name
 HWND hMainDlg;
 WNDPROC OldEditProc;
-
+INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction control values
 // Forward declarations of functions included in this code module:
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	NewEditProc(HWND, UINT, WPARAM, LPARAM);
-
+void SetDirection(INT IDEDIT, INT value);
+void InstallCtrlMouseHook(HWND hWndApp);
+void UninstallCtrlMouseHook();
+void UpdateDirection(INT dir[]);
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
                      _In_ LPTSTR    lpCmdLine,
@@ -132,7 +135,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-// Message handler for about box.
+// Message handler for Dialog
 INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
@@ -145,6 +148,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITLEFT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITUP), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
 		SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITDOWN), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
+		InstallCtrlMouseHook(hDlg);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -163,6 +167,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		return (INT_PTR)TRUE;
 
 	case WM_DESTROY:
+		UninstallCtrlMouseHook();
 		PostQuitMessage(0);
 		return (INT_PTR)TRUE;
 	}
@@ -177,6 +182,8 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		TCHAR buf[100];
 		_itow(wParam, buf, 16);
 		Edit_SetText(hWnd, buf);
+		SetDirection(GetDlgCtrlID(hWnd), wParam);
+		UpdateDirection(DIRECTION);
 		return 0;
 
 	default:
@@ -184,5 +191,24 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			return CallWindowProc(OldEditProc, hWnd, message, wParam, lParam);
 		else
 			return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+}
+
+void SetDirection(INT IDEDIT, INT value)
+{
+	switch (IDEDIT)
+	{
+	case IDC_EDITLEFT:
+		DIRECTION[0] = value;
+		break;
+	case IDC_EDITUP:
+		DIRECTION[1] = value;
+		break;
+	case IDC_EDITRIGHT:
+		DIRECTION[2] = value;
+		break;
+	case IDC_EDITDOWN:
+		DIRECTION[3] = value;
+		break;
 	}
 }
