@@ -23,18 +23,25 @@ NOTIFYICONDATA notifyIconData;
 INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction control values
 INT BUTTON[5] = { 'A', 'D', 'S', 'W', 'X' };
 INT SPEED = 10;
+HWND hWndDraw = NULL;
+BOOL paint = FALSE, draw = FALSE;
+INT px1, px2, py1, py2;
 
 // Forward declarations of functions included in this code module:
 BOOL				InitInstance(HINSTANCE, int);
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK	DlgProc(HWND, UINT, WPARAM, LPARAM);
 LRESULT CALLBACK	NewEditProc(HWND, UINT, WPARAM, LPARAM);
+ATOM				MyRegisterClass_Draw(HINSTANCE hInstance);
+LRESULT CALLBACK	WndProc_Draw(HWND, UINT, WPARAM, LPARAM);
 
 void OnInitDlg(HWND);
 
 void SetDataToArray(INT IDEDIT, INT value);
 void InstallCtrlMouseHook(HWND hWndApp);
+void InstallHook_Draw(HWND hWnd);
 void UninstallCtrlMouseHook();
+void UninstallHook_Draw();
 void UpdateData(INT dir[], INT but[], INT spd);
 void Minimize(HWND);
 void Restore(HWND);
@@ -54,6 +61,8 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	// Initialize global strings
 	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
 	LoadString(hInstance, IDC_MAINAPP, szWindowClass, MAX_LOADSTRING);
+
+	MyRegisterClass_Draw(hInstance);
 
 	// Perform application initialization:
 	if (!InitInstance (hInstance, nCmdShow))
@@ -76,6 +85,26 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 	return (int) msg.wParam;
 }
 
+ATOM MyRegisterClass_Draw(HINSTANCE hInstance)
+{
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+
+	wcex.style = CS_HREDRAW | CS_VREDRAW;
+	wcex.lpfnWndProc = WndProc_Draw;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = hInstance;
+	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
+	wcex.hCursor = LoadCursor(NULL, IDC_CROSS);
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+	wcex.lpszMenuName = 0;
+	wcex.lpszClassName = L"WindowDraw";
+	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+
+	return RegisterClassEx(&wcex);
+}
 
 //
 //   FUNCTION: InitInstance(HINSTANCE, int)
@@ -175,6 +204,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_INITDIALOG:
 		OnInitDlg(hDlg);
 		InstallCtrlMouseHook(hDlg);
+		InstallHook_Draw(hDlg);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -189,7 +219,46 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 		}
 		break;
+	case WM_KEYDOWN:
+		if (wParam == VK_CONTROL && !draw) {
+			//hWndDraw = CreateDialog(hInst, MAKEINTRESOURCE(IDD_DRAWSCREEN), hWnd, DrawScreen);
+			hWndDraw = CreateWindow(L"WindowDraw", NULL, WS_OVERLAPPEDWINDOW,
+				CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInst, NULL);
 
+			draw = TRUE;
+
+			SetWindowLong(hWndDraw, GWL_EXSTYLE, GetWindowLong(hWndDraw, GWL_EXSTYLE) | WS_EX_LAYERED);
+			SetLayeredWindowAttributes(hWndDraw, 0, 255, LWA_ALPHA);
+
+			RECT rect;
+			SetWindowPos(hWndDraw, NULL, 0, 0, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES), SWP_FRAMECHANGED);
+			GetWindowRect(hWndDraw, &rect);
+			HRGN hrgn;
+			hrgn = CreateRectRgn(0, 32, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
+			SetWindowRgn(hWndDraw, hrgn, true);
+
+			/*LONG style;
+			style = GetWindowLong(hWndDraw, GWL_EXSTYLE) | WS_EX_TOOLWINDOW & ~WS_EX_APPWINDOW;
+
+			ShowWindow(hWndDraw, SW_HIDE);
+			SetWindowLong(hWndDraw, GWL_EXSTYLE, style);
+			ShowWindow(hWndDraw, SW_MAXIMIZE);*/
+
+			//SetWindowLong(hWndDraw, GWL_STYLE, 0);
+			//DialogBox(hInst, MAKEINTRESOURCE(IDD_DRAWSCREEN), hWnd, DrawScreen);
+
+			//InvalidateRgn(hWnd, NULL, TRUE);
+			//draw = TRUE;
+			ShowWindow(hWndDraw, SW_MAXIMIZE);
+		}
+		break;
+	case WM_KEYUP:
+		if (wParam == VK_CONTROL){
+			ShowWindow(hWndDraw, SW_HIDE);
+			draw = FALSE;
+			hWndDraw = NULL;
+		}
+		break;
 	case WM_CLOSE:
 		Minimize(hDlg);
 		return (INT_PTR)TRUE;
@@ -200,6 +269,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case WM_DESTROY:
 		UninstallCtrlMouseHook();
+		UninstallHook_Draw();
 		PostQuitMessage(0);
 		return (INT_PTR)TRUE;
 	}
@@ -228,6 +298,103 @@ LRESULT CALLBACK NewEditProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 }
+
+LRESULT CALLBACK WndProc_Draw(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	int wmId, wmEvent;
+	PAINTSTRUCT ps;
+	HDC hdc, hdcSource, hdcMemory;
+	HBITMAP hBitmap, hBitmapOld;
+	HWND hWndDraw;
+
+	switch (message)
+	{
+	case WM_COMMAND:
+		wmId = LOWORD(wParam);
+		wmEvent = HIWORD(wParam);
+		// Parse the menu selections:
+		switch (wmId)
+		{
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
+			break;
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		break;
+	case WM_PAINT:
+		hdc = BeginPaint(hWnd, &ps);
+
+		hdcSource = GetDC(NULL);
+		hdcMemory = CreateCompatibleDC(hdcSource);
+
+		RECT rect; int w, h;
+		if (GetWindowRect(hWnd, &rect))
+		{
+			w = rect.right - rect.left;
+			h = rect.bottom - rect.top;
+		}
+
+		hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
+		hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
+
+		BitBlt(hdc, 0, 0, w, h, hdcSource, 0, 23, SRCCOPY);
+		hBitmap = (HBITMAP)SelectObject(hdcMemory, hBitmapOld);
+
+		DeleteDC(hdcSource);
+		DeleteDC(hdcMemory);
+
+		EndPaint(hWnd, &ps);
+		break;
+	case WM_LBUTTONDOWN:
+		paint = TRUE;
+
+		px1 = px2 = GET_X_LPARAM(lParam);
+		py1 = py2 = GET_Y_LPARAM(lParam);
+
+		break;
+	case WM_MOUSEMOVE:
+		if (!paint)
+			break;
+		hdc = GetDC(hWnd);
+		px2 = GET_X_LPARAM(lParam);
+		py2 = GET_Y_LPARAM(lParam);
+
+		HPEN hPen;
+		hPen = CreatePen(PS_SOLID, 5, RGB(255, 0, 0));
+		SelectObject(hdc, hPen);
+
+		MoveToEx(hdc, px1, py1, NULL);
+		LineTo(hdc, px2, py2);
+
+		px1 = px2;
+		py1 = py2;
+
+		ReleaseDC(hWnd, hdc);
+		break;
+	case WM_LBUTTONUP:
+		paint = FALSE;
+		break;
+	case WM_DESTROY:
+		typedef VOID(*MYPROC)();
+
+		HINSTANCE hInstLib;
+		MYPROC ProcAddr;
+
+		hInstLib = LoadLibrary(L"DLL.dll");
+		if (hInstLib != NULL) {
+			ProcAddr = (MYPROC)GetProcAddress(hInstLib, "RemoveHok");
+			if (ProcAddr != NULL)
+				ProcAddr();
+		}
+		PostQuitMessage(0);
+		break;
+	default:
+		return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+	return 0;
+}
+
 
 void Minimize(HWND hDlg)
 {

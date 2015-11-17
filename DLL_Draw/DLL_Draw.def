@@ -1,0 +1,3 @@
+EXPORTS
+InstallHook_Draw @1
+UninstallHook_Draw @2
