@@ -71,10 +71,8 @@ EXPORT void UninstallCtrlMouseHook()
 
 EXPORT void UpdateData(INT dir[], INT but[], INT spd)
 {
-	for (int i = 0; i < 4; i++)
-		Direction[i] = dir[i];
-	for (int i = 0; i < 5; i++)
-		Button[i] = but[i];
+	memcpy(Direction, dir, 4 * sizeof(INT));
+	memcpy(Button, but, 5 * sizeof(INT));
 	speed = spd;
 }
 

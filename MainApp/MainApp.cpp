@@ -133,9 +133,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    notifyIconData.cbSize = sizeof(NOTIFYICONDATA);
    notifyIconData.hWnd = hMainDlg;
    notifyIconData.uID = TRAY_ICON_ID;
-   notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE;
+   notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_INFO;
    notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
    notifyIconData.uCallbackMessage = WM_TRAYICON;
+   wsprintf(notifyIconData.szInfo, L"Press Ctrl+Shift+M to activate on-key mouse.\nHold Shift to draw on screen.");
+   wcscpy(notifyIconData.szInfoTitle, L"How to use?");
 
    Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
 
@@ -199,6 +201,9 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		return (INT_PTR)TRUE;
 	}
 
+	TCHAR buffer[MAX_LOADSTRING];
+	INT tmp;
+
 	switch (message)
 	{
 	case WM_INITDIALOG:
@@ -216,6 +221,16 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDC_BUTTONAPPLY:
 			UpdateData(DIRECTION, BUTTON, SPEED);
 			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
+			return (INT_PTR)TRUE;
+		case IDC_EDITSPEED:
+			if (HIWORD(wParam) != EN_CHANGE)
+				break;
+			Edit_GetText(GetDlgItem(hDlg, IDC_EDITSPEED), buffer, MAX_LOADSTRING);
+			tmp = _wtoi(buffer);
+			if (tmp > 0 && tmp <= 10000000)
+				EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), TRUE), SPEED = tmp;
+			else
+				EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
 			return (INT_PTR)TRUE;
 		}
 		break;
@@ -467,4 +482,7 @@ void OnInitDlg(HWND hDlg)
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITMBUTTON), GetKeyName(BUTTON[MBUTTON], buffer));
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITWUP), GetKeyName(BUTTON[WHEELUP], buffer));
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITWDOWN), GetKeyName(BUTTON[WHEELDOWN], buffer));
+
+	_itow(SPEED, buffer, 10);
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITSPEED), buffer);
 }
