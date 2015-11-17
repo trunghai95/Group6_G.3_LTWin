@@ -24,7 +24,7 @@ INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction co
 INT BUTTON[5] = { 'A', 'D', 'S', 'W', 'X' };
 INT SPEED = 10;
 HWND hWndDraw = NULL;
-BOOL paint = FALSE, draw = FALSE;
+BOOL paint = FALSE, draw = FALSE, active = FALSE;
 INT px1, px2, py1, py2;
 
 // Forward declarations of functions included in this code module:
@@ -235,8 +235,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_KEYDOWN:
-		if (wParam == VK_CONTROL && !draw) {
-			//hWndDraw = CreateDialog(hInst, MAKEINTRESOURCE(IDD_DRAWSCREEN), hWnd, DrawScreen);
+		if (wParam == VK_CONTROL && !draw && active) {
 			hWndDraw = CreateWindow(L"WindowDraw", NULL, WS_OVERLAPPEDWINDOW,
 				CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInst, NULL);
 
@@ -252,18 +251,6 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			hrgn = CreateRectRgn(0, 32, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
 			SetWindowRgn(hWndDraw, hrgn, true);
 
-			/*LONG style;
-			style = GetWindowLong(hWndDraw, GWL_EXSTYLE) | WS_EX_TOOLWINDOW & ~WS_EX_APPWINDOW;
-
-			ShowWindow(hWndDraw, SW_HIDE);
-			SetWindowLong(hWndDraw, GWL_EXSTYLE, style);
-			ShowWindow(hWndDraw, SW_MAXIMIZE);*/
-
-			//SetWindowLong(hWndDraw, GWL_STYLE, 0);
-			//DialogBox(hInst, MAKEINTRESOURCE(IDD_DRAWSCREEN), hWnd, DrawScreen);
-
-			//InvalidateRgn(hWnd, NULL, TRUE);
-			//draw = TRUE;
 			ShowWindow(hWndDraw, SW_MAXIMIZE);
 		}
 		break;
@@ -276,10 +263,13 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CLOSE:
 		Minimize(hDlg);
+		active = TRUE;
 		return (INT_PTR)TRUE;
 	case WM_TRAYICON:
-		if (wParam == TRAY_ICON_ID && lParam == WM_LBUTTONUP)
+		if (wParam == TRAY_ICON_ID && lParam == WM_LBUTTONUP){
 			Restore(hDlg);
+			active = FALSE;
+		}
 		return (INT_PTR)TRUE;
 
 	case WM_DESTROY:
