@@ -10,7 +10,7 @@
 
 #define MAX_LOADSTRING 200
 #define WM_TRAYICON (WM_USER + 1)
-#define TRAY_ICON_ID 12345
+#define TRAY_ICON_ID IDI_ICON1
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -134,7 +134,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    notifyIconData.hWnd = hMainDlg;
    notifyIconData.uID = TRAY_ICON_ID;
    notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_INFO;
-   notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
+   notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
    notifyIconData.uCallbackMessage = WM_TRAYICON;
    wsprintf(notifyIconData.szInfo, L"Press Ctrl+Shift+M to activate on-key mouse.\nHold Shift + F2 to draw on screen.");
    wcscpy(notifyIconData.szInfoTitle, L"How to use?");
@@ -210,6 +210,9 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		OnInitDlg(hDlg);
 		InstallCtrlMouseHook(hDlg);
 		InstallHook_Draw(hDlg);
+		//Set Icon for Dialog
+		SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)));
+		SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)));
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
