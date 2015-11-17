@@ -136,7 +136,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_INFO;
    notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
    notifyIconData.uCallbackMessage = WM_TRAYICON;
-   wsprintf(notifyIconData.szInfo, L"Press Ctrl+Shift+M to activate on-key mouse.\nHold Shift to draw on screen.");
+   wsprintf(notifyIconData.szInfo, L"Press Ctrl+Shift+M to activate on-key mouse.\nHold Shift + F2 to draw on screen.");
    wcscpy(notifyIconData.szInfoTitle, L"How to use?");
 
    Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
