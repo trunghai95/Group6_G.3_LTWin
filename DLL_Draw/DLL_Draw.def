@@ -1,3 +1,5 @@
 EXPORTS
 InstallHook_Draw @1
 UninstallHook_Draw @2
+UpdateDraw @3
+GetHWND @4

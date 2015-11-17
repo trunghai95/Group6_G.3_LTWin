@@ -45,6 +45,8 @@ void UninstallHook_Draw();
 void UpdateData(INT dir[], INT but[], INT spd);
 void Minimize(HWND);
 void Restore(HWND);
+void UpdateDraw();
+void GetHWND(HWND hwnd);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -235,31 +237,32 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	case WM_KEYDOWN:
-		if (wParam == VK_CONTROL && !draw && active) {
-			hWndDraw = CreateWindow(L"WindowDraw", NULL, WS_OVERLAPPEDWINDOW,
-				CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInst, NULL);
+		if (wParam == VK_CONTROL && active)
+			if (!draw) {
+				hWndDraw = CreateWindow(L"WindowDraw", NULL, WS_OVERLAPPEDWINDOW,
+					CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, NULL, NULL, hInst, NULL);
 
-			draw = TRUE;
+				SetWindowPos(hWndDraw, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+				draw = TRUE;
+				GetHWND(hWndDraw);
 
-			SetWindowLong(hWndDraw, GWL_EXSTYLE, GetWindowLong(hWndDraw, GWL_EXSTYLE) | WS_EX_LAYERED);
-			SetLayeredWindowAttributes(hWndDraw, 0, 255, LWA_ALPHA);
+				SetWindowLong(hWndDraw, GWL_EXSTYLE, GetWindowLong(hWndDraw, GWL_EXSTYLE) | WS_EX_LAYERED);
+				SetLayeredWindowAttributes(hWndDraw, 0, 255, LWA_ALPHA);
 
-			RECT rect;
-			SetWindowPos(hWndDraw, NULL, 0, 0, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES), SWP_FRAMECHANGED);
-			GetWindowRect(hWndDraw, &rect);
-			HRGN hrgn;
-			hrgn = CreateRectRgn(0, 32, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
-			SetWindowRgn(hWndDraw, hrgn, true);
+				RECT rect;
+				SetWindowPos(hWndDraw, NULL, 0, 0, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES), SWP_FRAMECHANGED);
+				GetWindowRect(hWndDraw, &rect);
+				HRGN hrgn;
+				hrgn = CreateRectRgn(0, 32, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
+				SetWindowRgn(hWndDraw, hrgn, true);
 
-			ShowWindow(hWndDraw, SW_MAXIMIZE);
-		}
-		break;
-	case WM_KEYUP:
-		if (wParam == VK_CONTROL){
-			ShowWindow(hWndDraw, SW_HIDE);
-			draw = FALSE;
-			hWndDraw = NULL;
-		}
+				ShowWindow(hWndDraw, SW_MAXIMIZE);
+			}
+			else {
+				ShowWindow(hWndDraw, SW_HIDE);
+				draw = FALSE;
+				hWndDraw = NULL;
+			}
 		break;
 	case WM_CLOSE:
 		Minimize(hDlg);
@@ -381,18 +384,8 @@ LRESULT CALLBACK WndProc_Draw(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPa
 		paint = FALSE;
 		break;
 	case WM_DESTROY:
-		typedef VOID(*MYPROC)();
-
-		HINSTANCE hInstLib;
-		MYPROC ProcAddr;
-
-		hInstLib = LoadLibrary(L"DLL.dll");
-		if (hInstLib != NULL) {
-			ProcAddr = (MYPROC)GetProcAddress(hInstLib, "RemoveHok");
-			if (ProcAddr != NULL)
-				ProcAddr();
-		}
-		PostQuitMessage(0);
+		draw = FALSE;
+		UpdateDraw();
 		break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
