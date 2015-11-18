@@ -104,12 +104,12 @@ ATOM MyRegisterClass_Draw(HINSTANCE hInstance)
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
-	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
+	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
 	wcex.hCursor = LoadCursor(NULL, IDC_CROSS);
 	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 	wcex.lpszMenuName = 0;
 	wcex.lpszClassName = L"WindowDraw";
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
+	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_ICON1));
 
 	return RegisterClassEx(&wcex);
 }
@@ -152,6 +152,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    return TRUE;
 }
 
+void SetAutoRun()
+{
+	HKEY hkey;
+	TCHAR** lppPart = { NULL };
+	TCHAR csPath[100];
+	GetFullPathName(L"MainApp.exe", 100, csPath, lppPart);
+	RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
+	RegSetValueEx(hkey, L"Smart Keymouse", 0, REG_SZ, (BYTE*)csPath, (wcslen(csPath) + 1) * 2);
+}
+void OffAutoRun()
+{
+	HKEY hkey;
+	RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
+	RegDeleteKey(hkey, L"Smart Keymouse");
+}
 // Message handler for Dialog
 INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -189,6 +204,12 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			Minimize(hDlg);
 			SaveSettings();
 			return (INT_PTR)TRUE;
+		case IDC_AUTORUN:
+			if (Button_GetCheck(GetDlgItem(hDlg, IDC_AUTORUN)))
+				SetAutoRun();
+			else
+				OffAutoRun();
+			break;
 		case IDC_EDITSPEED:
 			if (HIWORD(wParam) != EN_CHANGE)
 				break;
