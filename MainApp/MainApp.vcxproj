@@ -95,8 +95,20 @@
     <ResourceCompile Include="MainApp.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="image\Down.bmp" />
+    <Image Include="image\Lbutton.bmp" />
+    <Image Include="image\Left.bmp" />
+    <Image Include="image\Middle.bmp" />
+    <Image Include="image\Rbutton.bmp" />
+    <Image Include="image\Right.bmp" />
+    <Image Include="image\RollDown.bmp" />
+    <Image Include="image\RollUp.bmp" />
+    <Image Include="image\Smart Keymouse.bmp" />
+    <Image Include="image\Speed.bmp" />
+    <Image Include="image\Up.bmp" />
     <Image Include="MainApp.ico" />
     <Image Include="small.ico" />
+    <Image Include="Smart Keymouse.ico" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\Debug\DLL_ControlMouse.lib" />

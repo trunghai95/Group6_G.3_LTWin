@@ -14,6 +14,7 @@ struct MouseMessage
 static vector<MouseMessage>* mouseSequence = NULL;
 static vector<clock_t>* delayTime = NULL;
 static bool record = false;
+static int replaytime = 1;
 static clock_t t1 = 0;
 static clock_t t2 = 0;
 #pragma comment(linker,"/SECTION:shared,RWS")

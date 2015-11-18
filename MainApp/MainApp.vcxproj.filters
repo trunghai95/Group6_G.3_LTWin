@@ -57,6 +57,42 @@
     <Image Include="MainApp.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Smart Keymouse.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Down.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Lbutton.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Left.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Middle.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Rbutton.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Right.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\RollDown.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\RollUp.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Smart Keymouse.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Up.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="image\Speed.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Library Include="..\Debug\DLL_ControlMouse.lib">

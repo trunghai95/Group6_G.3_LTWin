@@ -25,6 +25,7 @@ NOTIFYICONDATA notifyIconData;
 INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction control values
 INT BUTTON[5] = { 'A', 'D', 'S', 'W', 'X' };
 INT SPEED = 10;
+INT REPLAYTIME = 1;
 HWND hWndDraw = NULL;
 BOOL paint = FALSE, draw = FALSE, active = FALSE;
 INT px1, px2, py1, py2;
@@ -51,6 +52,7 @@ void UpdateDraw();
 void GetHWND(HWND hwnd);
 void SaveSettings();
 void LoadSettings();
+bool SetNumTimeReplay(int n);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -168,6 +170,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		OnInitDlg(hDlg);
 		InstallCtrlMouseHook(hDlg);
 		InstallHook_Draw(hDlg);
+		SetNumTimeReplay(REPLAYTIME);
 		//Set Icon for Dialog
 		SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)));
 		SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)));
@@ -181,6 +184,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 		case IDC_BUTTONAPPLY:
 			UpdateData(DIRECTION, BUTTON, SPEED);
+			SetNumTimeReplay(REPLAYTIME);
 			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
 			Minimize(hDlg);
 			SaveSettings();
@@ -195,6 +199,15 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			else
 				EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
 			return (INT_PTR)TRUE;
+		case IDC_EDITREPLAY:
+			if (HIWORD(wParam) != EN_CHANGE)
+				break;
+			Edit_GetText(GetDlgItem(hDlg, IDC_EDITREPLAY), buffer, MAX_LOADSTRING);
+			tmp = _wtoi(buffer);
+			if (tmp > 0 && tmp <= 10000000)
+				EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), TRUE), REPLAYTIME = tmp;
+			else
+				EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
 		}
 		break;
 	case WM_KEYDOWN:
@@ -405,6 +418,7 @@ void OnInitDlg(HWND hDlg)
 {
 	LoadSettings();
 	UpdateData(DIRECTION, BUTTON, SPEED);
+	SetNumTimeReplay(REPLAYTIME);
 
 	OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC);
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
@@ -430,6 +444,8 @@ void OnInitDlg(HWND hDlg)
 
 	_itow(SPEED, buffer, 10);
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITSPEED), buffer);
+	_itow(REPLAYTIME, buffer, 10);
+	Edit_SetText(GetDlgItem(hDlg, IDC_EDITREPLAY), buffer);
 }
 
 void SaveSettings()
@@ -442,6 +458,7 @@ void SaveSettings()
 	os.write((char*)DIRECTION, sizeof(DIRECTION));
 	os.write((char*)BUTTON, sizeof(BUTTON));
 	os.write((char*)&SPEED, sizeof(INT));
+	os.write((char*)&REPLAYTIME, sizeof(INT));
 }
 
 void LoadSettings()
@@ -451,7 +468,7 @@ void LoadSettings()
 	if (!is.good())
 		return;
 
-	INT buffer[10];
+	INT buffer[11];
 	is.read((char*)buffer, sizeof(buffer));
 
 	if (is)
@@ -459,5 +476,6 @@ void LoadSettings()
 		memcpy(DIRECTION, buffer, sizeof(DIRECTION));
 		memcpy(BUTTON, buffer + 4, sizeof(BUTTON));
 		SPEED = buffer[9];
+		REPLAYTIME = buffer[10];
 	}
 }

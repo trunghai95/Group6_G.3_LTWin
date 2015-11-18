@@ -29,10 +29,10 @@ void replayMouse();
 void replayMouse(void * data);
 void deleteInputMouse(INPUT *mouse);
 WPARAM hookedParam[] = { WM_LBUTTONDOWN, WM_LBUTTONUP,
-						WM_RBUTTONDOWN, WM_RBUTTONUP,
-						WM_MBUTTONDOWN, WM_MBUTTONUP,
-						WM_MOUSEWHEEL,
-						WM_MOUSEMOVE };
+WM_RBUTTONDOWN, WM_RBUTTONUP,
+WM_MBUTTONDOWN, WM_MBUTTONUP,
+WM_MOUSEWHEEL,
+WM_MOUSEMOVE };
 
 LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -61,7 +61,7 @@ LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 			return 1;
 		}
 	}
-	
+
 
 	if (HIWORD(GetKeyState(VK_CONTROL)) && HIWORD(GetKeyState(VK_SHIFT)))
 	{
@@ -143,61 +143,64 @@ void replayMouse()
 		MessageBox(hWnd, L"khong co du lieu", L"", NULL);
 		return;
 	}
-	for (int i = 0; i < mouseSequence->size(); ++i)
+	for (int k = 0; k < replaytime; ++k)
 	{
-		mywait((*delayTime)[i]);
-		MSLLHOOKSTRUCT mh = (*mouseSequence)[i].lParam;
+		for (int i = 0; i < mouseSequence->size(); ++i)
 		{
-			INPUT *mouse = new INPUT;
-			mouse->type = INPUT_MOUSE;
-			mouse->mi.dx = mh.pt.x;
-			mouse->mi.dy = mh.pt.y;
-			SetCursorPos(mh.pt.x, mh.pt.y);
-
-			switch ((*mouseSequence)[i].wParam)
+			mywait((*delayTime)[i]);
+			MSLLHOOKSTRUCT mh = (*mouseSequence)[i].lParam;
 			{
-			case WM_LBUTTONDOWN:
-				mouse->mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
-				mouse->mi.mouseData = 0;
-				break;
-			case WM_LBUTTONUP:
-				mouse->mi.dwFlags = MOUSEEVENTF_LEFTUP;
-				mouse->mi.mouseData = 0;
-				break;
-			case WM_RBUTTONDOWN:
-				mouse->mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
-				mouse->mi.mouseData = 0;
-				break;
-			case WM_RBUTTONUP:
-				mouse->mi.dwFlags = MOUSEEVENTF_RIGHTUP;
-				mouse->mi.mouseData = 0;
-				break;
-			case WM_MBUTTONDOWN:
-				mouse->mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
-				mouse->mi.mouseData = 0;
-				break;
-			case WM_MBUTTONUP:
-				mouse->mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
-				mouse->mi.mouseData = 0;
-				break;
-			case WM_MOUSEWHEEL:
-				mouse->mi.dwFlags = MOUSEEVENTF_WHEEL;
-				mouse->mi.mouseData = mh.mouseData;
-				break;
-			case WM_MOUSEHWHEEL:
-				mouse->mi.dwFlags = MOUSEEVENTF_HWHEEL;
-				mouse->mi.mouseData = mh.mouseData;
-				break;
-			default:
-				mouse->mi.dwFlags = mh.flags;
-				mouse->mi.mouseData = mh.mouseData;
+				INPUT *mouse = new INPUT;
+				mouse->type = INPUT_MOUSE;
+				mouse->mi.dx = mh.pt.x;
+				mouse->mi.dy = mh.pt.y;
+				SetCursorPos(mh.pt.x, mh.pt.y);
+
+				switch ((*mouseSequence)[i].wParam)
+				{
+				case WM_LBUTTONDOWN:
+					mouse->mi.dwFlags = MOUSEEVENTF_LEFTDOWN;
+					mouse->mi.mouseData = 0;
+					break;
+				case WM_LBUTTONUP:
+					mouse->mi.dwFlags = MOUSEEVENTF_LEFTUP;
+					mouse->mi.mouseData = 0;
+					break;
+				case WM_RBUTTONDOWN:
+					mouse->mi.dwFlags = MOUSEEVENTF_RIGHTDOWN;
+					mouse->mi.mouseData = 0;
+					break;
+				case WM_RBUTTONUP:
+					mouse->mi.dwFlags = MOUSEEVENTF_RIGHTUP;
+					mouse->mi.mouseData = 0;
+					break;
+				case WM_MBUTTONDOWN:
+					mouse->mi.dwFlags = MOUSEEVENTF_MIDDLEDOWN;
+					mouse->mi.mouseData = 0;
+					break;
+				case WM_MBUTTONUP:
+					mouse->mi.dwFlags = MOUSEEVENTF_MIDDLEUP;
+					mouse->mi.mouseData = 0;
+					break;
+				case WM_MOUSEWHEEL:
+					mouse->mi.dwFlags = MOUSEEVENTF_WHEEL;
+					mouse->mi.mouseData = mh.mouseData;
+					break;
+				case WM_MOUSEHWHEEL:
+					mouse->mi.dwFlags = MOUSEEVENTF_HWHEEL;
+					mouse->mi.mouseData = mh.mouseData;
+					break;
+				default:
+					mouse->mi.dwFlags = mh.flags;
+					mouse->mi.mouseData = mh.mouseData;
+				}
+
+				mouse->mi.time = mh.time;
+				mouse->mi.dwExtraInfo = mh.dwExtraInfo;
+				SendInput(1, mouse, sizeof(INPUT));
+
+				deleteInputMouse(mouse);
 			}
-
-			mouse->mi.time = mh.time;
-			mouse->mi.dwExtraInfo = mh.dwExtraInfo;
-			SendInput(1, mouse, sizeof(INPUT));
-
-			deleteInputMouse(mouse);
 		}
 	}
 }
@@ -234,6 +237,13 @@ EXPORT void UpdateData(INT dir[], INT but[], INT spd)
 	speed = spd;
 }
 
+EXPORT bool SetNumTimeReplay(int n)
+{
+	if (n < 0)
+		return false;
+	replaytime = n;
+	return true;
+}
 void MoveMouse(HWND hWnd, WPARAM wParam)
 {
 	POINT pt;
@@ -305,11 +315,11 @@ void ClickMouse(WPARAM wParam)
 void ReleaseMouse(WPARAM wParam)
 {
 	if (wParam == Button[LBUTTON]) //Left up
-		SendEventClick(MOUSEEVENTF_LEFTUP,0);
+		SendEventClick(MOUSEEVENTF_LEFTUP, 0);
 	else if (wParam == Button[RBUTTON]) //right up
-		SendEventClick(MOUSEEVENTF_RIGHTUP,0);
+		SendEventClick(MOUSEEVENTF_RIGHTUP, 0);
 	else if (wParam == Button[MBUTTON]) // middle up
-		SendEventClick(MOUSEEVENTF_MIDDLEUP,0);
+		SendEventClick(MOUSEEVENTF_MIDDLEUP, 0);
 
 }
 
