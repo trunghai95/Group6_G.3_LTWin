@@ -7,10 +7,12 @@
 #include <shellapi.h>
 #include "SupportingFuncs.h"
 #include "../IDs.h"
+#include <fstream>
 
-#define MAX_LOADSTRING 200
+#define MAX_LOADSTRING 100
 #define WM_TRAYICON (WM_USER + 1)
-#define TRAY_ICON_ID 12345
+#define TRAY_ICON_ID 26101995
+#define DATAPATH "data.bin"
 
 // Global Variables:
 HINSTANCE hInst;								// current instance
@@ -47,6 +49,8 @@ void Minimize(HWND);
 void Restore(HWND);
 void UpdateDraw();
 void GetHWND(HWND hwnd);
+void SaveSettings();
+void LoadSettings();
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -136,7 +140,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    notifyIconData.hWnd = hMainDlg;
    notifyIconData.uID = TRAY_ICON_ID;
    notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_INFO;
-   notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MAINAPP));
+   notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
    notifyIconData.uCallbackMessage = WM_TRAYICON;
    wsprintf(notifyIconData.szInfo, L"Press Ctrl+Shift+M to activate on-key mouse.\nHold Shift + F2 to draw on screen.");
    wcscpy(notifyIconData.szInfoTitle, L"How to use?");
@@ -144,54 +148,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
 
    return TRUE;
-}
-
-//
-//  FUNCTION: WndProc(HWND, UINT, WPARAM, LPARAM)
-//
-//  PURPOSE:  Processes messages for the main window.
-//
-//  WM_COMMAND	- process the application menu
-//  WM_PAINT	- Paint the main window
-//  WM_DESTROY	- post a quit message and return
-//
-//
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	int wmId, wmEvent;
-	PAINTSTRUCT ps;
-	HDC hdc;
-
-	switch (message)
-	{
-	case WM_COMMAND:
-		wmId    = LOWORD(wParam);
-		wmEvent = HIWORD(wParam);
-		// Parse the menu selections:
-		switch (wmId)
-		{
-		case IDM_ABOUT:
-			//DialogBox(hInst, MAKEINTRESOURCE(IDD_MAINDLG), hWnd, About);
-			break;
-		case IDM_EXIT:
-			DestroyWindow(hWnd);
-			break;
-		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
-		}
-		break;
-	case WM_PAINT:
-		hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code here...
-		EndPaint(hWnd, &ps);
-		break;
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
-	return 0;
 }
 
 // Message handler for Dialog
@@ -212,6 +168,9 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		OnInitDlg(hDlg);
 		InstallCtrlMouseHook(hDlg);
 		InstallHook_Draw(hDlg);
+		//Set Icon for Dialog
+		SendMessage(hDlg, WM_SETICON, ICON_SMALL, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)));
+		SendMessage(hDlg, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(IDI_ICON1)));
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -223,6 +182,8 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDC_BUTTONAPPLY:
 			UpdateData(DIRECTION, BUTTON, SPEED);
 			EnableWindow(GetDlgItem(hMainDlg, IDC_BUTTONAPPLY), FALSE);
+			Minimize(hDlg);
+			SaveSettings();
 			return (INT_PTR)TRUE;
 		case IDC_EDITSPEED:
 			if (HIWORD(wParam) != EN_CHANGE)
@@ -442,6 +403,7 @@ void SetDataToArray(INT IDEDIT, INT value)
 
 void OnInitDlg(HWND hDlg)
 {
+	LoadSettings();
 	UpdateData(DIRECTION, BUTTON, SPEED);
 
 	OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC);
@@ -468,4 +430,34 @@ void OnInitDlg(HWND hDlg)
 
 	_itow(SPEED, buffer, 10);
 	Edit_SetText(GetDlgItem(hDlg, IDC_EDITSPEED), buffer);
+}
+
+void SaveSettings()
+{
+	std::ofstream os(DATAPATH, std::ofstream::out | std::ofstream::binary);
+
+	if (!os.good())
+		return;
+
+	os.write((char*)DIRECTION, sizeof(DIRECTION));
+	os.write((char*)BUTTON, sizeof(BUTTON));
+	os.write((char*)&SPEED, sizeof(INT));
+}
+
+void LoadSettings()
+{
+	std::ifstream is(DATAPATH, std::ifstream::in | std::ifstream::binary);
+
+	if (!is.good())
+		return;
+
+	INT buffer[10];
+	is.read((char*)buffer, sizeof(buffer));
+
+	if (is)
+	{
+		memcpy(DIRECTION, buffer, sizeof(DIRECTION));
+		memcpy(BUTTON, buffer + 4, sizeof(BUTTON));
+		SPEED = buffer[9];
+	}
 }
