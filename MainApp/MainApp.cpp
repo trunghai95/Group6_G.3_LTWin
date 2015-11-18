@@ -214,7 +214,7 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				SetWindowPos(hWndDraw, NULL, 0, 0, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES), SWP_FRAMECHANGED);
 				GetWindowRect(hWndDraw, &rect);
 				HRGN hrgn;
-				hrgn = CreateRectRgn(0, 32, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES));
+				hrgn = CreateRectRgn(0, 32, GetDeviceCaps(GetDC(NULL), HORZRES), GetDeviceCaps(GetDC(NULL), VERTRES) - 32);
 				SetWindowRgn(hWndDraw, hrgn, true);
 
 				ShowWindow(hWndDraw, SW_MAXIMIZE);
