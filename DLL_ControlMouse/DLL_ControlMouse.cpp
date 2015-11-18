@@ -38,27 +38,30 @@ LRESULT CALLBACK KBControlMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
 	if (nCode < 0 || GetActiveWindow() == hWnd)
 		return CallNextHookEx(hHook, nCode, wParam, lParam);
-	if (wParam == 'R' && HIWORD(GetKeyState(VK_CONTROL)) && HIWORD(GetKeyState(VK_SHIFT)))
-	{
-		mouseSequence->clear();
-		delayTime->clear();
-		record = true;
-		return 1;
-	}
-	if (wParam == 'S' && HIWORD(GetKeyState(VK_CONTROL)) && HIWORD(GetKeyState(VK_SHIFT)))
-	{
-		record = false;
-		return 1;
-	}
-	if (wParam == 'P' && ((GetKeyState(VK_CONTROL) & 0x8000) != 0) && ((GetKeyState(VK_SHIFT) & 0x8000) != 0) && !record)
-	{
-		HANDLE handle = (HANDLE)_beginthread(replayMouse, 0, NULL); // create thread
-		//WaitForSingleObject(handle, INFINITE);
-		//replayMouse();
-		return 1;
-	}
-
 	KBDLLHOOKSTRUCT* str = (KBDLLHOOKSTRUCT*)lParam;
+	if (HIWORD(GetKeyState(VK_CONTROL)) && HIWORD(GetKeyState(VK_SHIFT)))
+	{
+		if (wParam == WM_KEYDOWN && str->vkCode == 'R')
+		{
+			mouseSequence->clear();
+			delayTime->clear();
+			record = true;
+			return 1;
+		}
+		if (wParam == WM_KEYDOWN && str->vkCode == 'S')
+		{
+			record = false;
+			return 1;
+		}
+		if (wParam == WM_KEYDOWN && str->vkCode == 'P' && !record)
+		{
+			HANDLE handle = (HANDLE)_beginthread(replayMouse, 0, NULL); // create thread
+			//WaitForSingleObject(handle, INFINITE);
+			//replayMouse();
+			return 1;
+		}
+	}
+	
 
 	if (HIWORD(GetKeyState(VK_CONTROL)) && HIWORD(GetKeyState(VK_SHIFT)))
 	{
@@ -202,7 +205,7 @@ EXPORT void InstallCtrlMouseHook(HWND hWndApp)
 {
 	hWnd = hWndApp;
 	if (hHook == NULL)
-		hHook = SetWindowsHookEx(WH_KEYBOARD, (HOOKPROC)KBControlMouseProc, hInstLib, 0);
+		hHook = SetWindowsHookEx(WH_KEYBOARD_LL, (HOOKPROC)KBControlMouseProc, hInstLib, 0);
 	if (hHook2 == NULL)
 	{
 		mouseSequence = new vector<MouseMessage>();
