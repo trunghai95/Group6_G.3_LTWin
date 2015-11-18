@@ -144,7 +144,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_INFO;
    notifyIconData.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_ICON1));
    notifyIconData.uCallbackMessage = WM_TRAYICON;
-   wsprintf(notifyIconData.szInfo, L"Press Ctrl+Shift+M to activate on-key mouse.\nHold Shift + F2 to draw on screen.");
+   wsprintf(notifyIconData.szInfo, L"Ctrl+Shift+M to activate on-key mouse.\nShift+F2 to start/stop drawing on screen.\nCtrl+Shift+R to start recording mouselog.\nCtrl+Shift+S to stop recording mouselog.\nCtrl+Shift+P to replay mouselog.");
    wcscpy(notifyIconData.szInfoTitle, L"How to use?");
 
    Shell_NotifyIcon(NIM_DELETE, &notifyIconData);
