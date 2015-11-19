@@ -26,6 +26,7 @@ INT DIRECTION[4] = { VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN }; //default direction co
 INT BUTTON[5] = { 'A', 'D', 'S', 'W', 'X' };
 INT SPEED = 10;
 INT REPLAYTIME = 1;
+INT AUTORUN = 0;
 HWND hWndDraw = NULL;
 BOOL paint = FALSE, draw = FALSE, active = FALSE;
 INT px1, px2, py1, py2;
@@ -206,9 +207,9 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 		case IDC_AUTORUN:
 			if (Button_GetCheck(GetDlgItem(hDlg, IDC_AUTORUN)))
-				SetAutoRun();
+				SetAutoRun(), AUTORUN = 1;
 			else
-				OffAutoRun();
+				OffAutoRun(), AUTORUN = 0;
 			break;
 		case IDC_EDITSPEED:
 			if (HIWORD(wParam) != EN_CHANGE)
@@ -480,6 +481,7 @@ void SaveSettings()
 	os.write((char*)BUTTON, sizeof(BUTTON));
 	os.write((char*)&SPEED, sizeof(INT));
 	os.write((char*)&REPLAYTIME, sizeof(INT));
+	os.write((char*)&AUTORUN, sizeof(INT));
 }
 
 void LoadSettings()
@@ -489,7 +491,7 @@ void LoadSettings()
 	if (!is.good())
 		return;
 
-	INT buffer[11];
+	INT buffer[12];
 	is.read((char*)buffer, sizeof(buffer));
 
 	if (is)
@@ -498,5 +500,6 @@ void LoadSettings()
 		memcpy(BUTTON, buffer + 4, sizeof(BUTTON));
 		SPEED = buffer[9];
 		REPLAYTIME = buffer[10];
+		AUTORUN = buffer[11];
 	}
 }
