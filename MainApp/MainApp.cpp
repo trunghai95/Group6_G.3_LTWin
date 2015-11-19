@@ -207,9 +207,9 @@ INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			return (INT_PTR)TRUE;
 		case IDC_AUTORUN:
 			if (Button_GetCheck(GetDlgItem(hDlg, IDC_AUTORUN)))
-				SetAutoRun(), AUTORUN = 1;
+				SetAutoRun(), AUTORUN = 1, SaveSettings();
 			else
-				OffAutoRun(), AUTORUN = 0;
+				OffAutoRun(), AUTORUN = 0, SaveSettings();
 			break;
 		case IDC_EDITSPEED:
 			if (HIWORD(wParam) != EN_CHANGE)
@@ -441,6 +441,7 @@ void OnInitDlg(HWND hDlg)
 	LoadSettings();
 	UpdateData(DIRECTION, BUTTON, SPEED);
 	SetNumTimeReplay(REPLAYTIME);
+	Button_SetCheck(GetDlgItem(hDlg, IDC_AUTORUN), AUTORUN);
 
 	OldEditProc = (WNDPROC)GetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC);
 	SetWindowLongPtr(GetDlgItem(hDlg, IDC_EDITRIGHT), GWLP_WNDPROC, (LONG_PTR)NewEditProc);
