@@ -161,12 +161,14 @@ void SetAutoRun()
 	GetFullPathName(L"MainApp.exe", 100, csPath, lppPart);
 	RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
 	RegSetValueEx(hkey, L"Smart Keymouse", 0, REG_SZ, (BYTE*)csPath, (wcslen(csPath) + 1) * 2);
+	RegCloseKey(hkey);
 }
 void OffAutoRun()
 {
 	HKEY hkey;
 	RegCreateKey(HKEY_CURRENT_USER, L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", &hkey);
 	RegDeleteKey(hkey, L"Smart Keymouse");
+	RegCloseKey(hkey);
 }
 // Message handler for Dialog
 INT_PTR CALLBACK DlgProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
